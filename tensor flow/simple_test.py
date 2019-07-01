@@ -1,3 +1,11 @@
+'''
+Date: 2019/7/1
+Author: Cheng-Yuan Wang
+Title: Tensorflow with using Keras to find the linear equation
+'''
+
+# -*- coding: UTF-8 -*-
+
 import tensorflow as tf
 import keras as ks
 from keras.models import Sequential
