@@ -1,3 +1,10 @@
+'''
+Date: 2019/8/6
+Author: Cheng-Yuan Wang
+Title: Using Tensorflow to judge whether the picture is human or hore
+
+'''
+
 import os
 import matplotlib.pyplot as plt
 import matplotlib.image as mp
