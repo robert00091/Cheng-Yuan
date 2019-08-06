@@ -10,6 +10,9 @@ Download the training pictures and unzip the folder
 https://storage.googleapis.com/laurencemoroney-blog.appspot.com/horse-or-human.zip 
 ```
 
+Judge the pictures
+----
+
 ``` Python
 
 image = Image.open('Your picture')
