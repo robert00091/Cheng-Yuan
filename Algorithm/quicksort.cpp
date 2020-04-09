@@ -16,7 +16,7 @@ void swap(int* a, int* b){
     *b = tmp;
 }
 
-int partition(int* num, int p, int r){ // Hoare Partition
+int partition(vector<int> &num, int p, int r){ // Hoare Partition
     int x = num[p];
     int i = p-1;
     int j = r+1;
@@ -43,7 +43,7 @@ int partition(int* num, int p, int r){ // Hoare Partition
         
 }
 
-void quicksort(int* num, int p, int r){
+void quicksort(vector<int> &num, int p, int r){
     if(p<r){
         int q = partition(num, p, r);
         quicksort(num, p, q-1);
@@ -54,12 +54,12 @@ void quicksort(int* num, int p, int r){
 }
 
 int main(int argc, const char * argv[]) {
-    int num[] = {5, 3, 2, 6, 4, 1, 3, 7};
-    int len = sizeof(num)/sizeof(num[0]);
+    vector<int> num = {5, 3, 2, 6, 4, 1, 8, 7, 100, 20};
+    int len = static_cast<int>(num.size());
     
     quicksort(num, 0, len-1);
     
-    for(int i=0; i<len; i++){
+    for(int i=0; i<num.size(); i++){
        cout << num[i] << " ";
     }
     
