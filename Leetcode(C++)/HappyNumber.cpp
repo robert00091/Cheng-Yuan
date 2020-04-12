@@ -21,7 +21,7 @@ int next_num(int num){
   
 }
 
-bool happy_num(int num){
+bool happy_num(int num){ // reference of FLOYD'S TORTOISE-HARE CYCLE-FINDING: https://visualgo.net/en/cyclefinding
   int slow = num;
   int fast = num;
   do{
