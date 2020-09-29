@@ -30,6 +30,9 @@ def Sum(xb):
         total = total + xb[i]
     return total
 
+def plot(x, y, j, k):
+    return 0
+
 def walk(dis_table, goal_1):
     xb = []
     xb.append(dis_table[0][goal_1])
@@ -62,12 +65,15 @@ def find_neighbor(pl):
     pl_new = []
     move_1 = [pl[i]+1 for i in range(len(pl))]
     move_2 = [pl[i]-1 for i in range(len(pl))] 
+ 
 
     for i in move_1:
         for j in move_2:
             if i != j and i!=0 and i!=15 and j!=0 and j!=15 and (i not in pl_new) and (j not in pl_new):
                 pl_new.append(i)
                 pl_new.append(j)
+
+
     return pl_new
 
 def tabu_move(dis_table, pcur, pb_best, tabu):
@@ -112,6 +118,8 @@ def rand_walk(dis_table):
     pb_best = total_len
     pl_best = pl
 
+    
+
     count = 0
     while count <= 100:
 
@@ -135,10 +143,10 @@ def rand_walk(dis_table):
 def tabu_search(dis_table, pl_best, pb_best):
     pcur = pl_best
     tabu, route_move = [], pcur
-
+    pl_best =[]
     count = 0
     
-    while count <= 50:
+    while count <= 100:
         pnew = 0
         ptest = route_count(dis_table, pcur)
         route_move, pb_best, moveb = tabu_move(dis_table, route_move, ptest, tabu)
@@ -148,8 +156,72 @@ def tabu_search(dis_table, pl_best, pb_best):
             tabu.pop(9)
 
         count = count + 1 
-    print(pb_best)
-    print(tabu)
+    for i in range(len(route_move)):
+        pl_best.append(route_move[i])
+
+    print(pl_best)
+    print('Minimum Total:', pb_best)
+
+    return pl_best, pb_best
+    #print(tabu)
+
+def simu_annealing(dis_table, pl_best, pb_best):
+    pl, pcur = pl_best, pb_best
+    pl_best = pl
+    pbest = pcur
+    T = 10
+    t = 0
+    c = 1-(t/T)
+    
+    count = 0
+    while count <= 10:
+
+        while t <= 10000:
+
+            pl_new = find_neighbor(pl)
+            dE = route_count(dis_table, pl_new) - route_count(dis_table, pl)
+            if dE <= 0:
+                pl = pl_new
+                pcur = route_count(dis_table, pl_new)
+                if pcur < pbest:
+                    pbest = pcur
+
+            else: # dE > 0: using the Metropolis criterion
+                T = T * c       
+                rv = random.uniform(0,1)
+                if rv < math.exp(-dE/T):
+                    pcur = route_count(dis_table, pl_new)
+            pl, total_len = walk(dis_table, random.randint(1,14))
+            t = t +1
+  
+        count = count + 1
+    print(pl)
+    print('Minimum Total:', pbest)
+
+
+def hill_climb(dis_table, pl_best, pb_best):
+    # The initial and final pos are both Incheon
+    pl, total_len = pl_best, pb_best
+    #print('Total length:', total_len)
+    pb_best = total_len
+    pl_best = pl
+
+    count = 0
+    while count <= 100:
+
+        pl_new = find_neighbor(pl)
+
+        min_total = route_count(dis_table, pl_new)
+        if min_total < pb_best:
+            pb_best = min_total
+            pl_best = pl_new
+        
+        #pl, total_len = walk(dis_table, goal_1)
+        count = count + 1
+    
+    print(pl_best)
+    print('Minimum Total:', pb_best)
+
         
 if __name__ == "__main__":
     
@@ -195,7 +267,16 @@ if __name__ == "__main__":
             print('{0:3d}'.format(dis_table[i][j]), end = ' ')
         print('\n')
     '''
+
+    print("Random Walk:")
     pl_best, pb_best = rand_walk(dis_table)
 
-    tabu_search(dis_table, pl_best, pb_best)
+    print("\nTabu Search:")
+    pl_best1, pb_best1 = tabu_search(dis_table, pl_best, pb_best)
 
+
+    print("\nSimulated Annealing:")
+    simu_annealing(dis_table, pl_best, pb_best)
+
+    print("\nHill Climbing:")
+    hill_climb(dis_table, pl_best1, pb_best1)
