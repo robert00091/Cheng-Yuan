@@ -70,6 +70,39 @@ def find_neighbor(pl):
                 pl_new.append(j)
     return pl_new
 
+def tabu_move(dis_table, pcur, pb_best, tabu):
+    route, move = [], []
+    OK_move, moveb, route_move = [], [], []
+
+    for i in range(14):
+        for j in range(14):
+            if i != j:
+                move.append((i,j))
+    
+    for (i, j) in move:
+        if (i,j) not in tabu:
+            pcur_move = np.copy(pcur)
+            tmp1, tmp2 = pcur[i], pcur[j]
+            pcur_move[j], pcur_move[i] = tmp1, tmp2
+            route.append(pcur_move)
+            OK_move.append((i,j))
+            
+
+    for i in range(len(route)):
+        rout_dist = route_count(dis_table, route[i])
+        #print(rout_dist, ',', OK_move[i])
+        if rout_dist < pb_best:
+            #pnew = rout_dist
+            pb_best = rout_dist
+                
+            if moveb == OK_move[i]: # Take the first move if move are the same
+                OK_move[i] = moveb
+                route_move = route[i]
+            else:
+                moveb = OK_move[i]
+                route_move = route[i]
+    #print(route_move)
+    return route_move, pb_best, moveb
 
 def rand_walk(dis_table):
     # The initial and final pos are both Incheon
@@ -101,43 +134,22 @@ def rand_walk(dis_table):
 
 def tabu_search(dis_table, pl_best, pb_best):
     pcur = pl_best
-    pcur_fix = []
-    for i in range(len(pcur)):
-        pcur_fix.append(pcur[i])
-    move = []
-    OK_move, moveb = [], []
-    route = []
-    tabu = [0]*10
+    tabu, route_move = [], pcur
 
     count = 0
     
     while count <= 50:
         pnew = 0
         ptest = route_count(dis_table, pcur)
-
-        for i in range(13):
-            for j in range(13):
-                if i != j:
-                    move.append((i,j))
+        route_move, pb_best, moveb = tabu_move(dis_table, route_move, ptest, tabu)
+        tabu.append(moveb)
         
-        for (i, j) in move:
-            pcur_move = np.copy(pcur)
-            tmp1, tmp2 = pcur[i], pcur[j]
-            pcur_move[j], pcur_move[i] = tmp1, tmp2
-            route.append(pcur_move)
-            OK_move.append((i,j))
-            
-
-        for i in range(10):
-            rout_dist = route_count(dis_table, route[i])
-            if rout_dist < pb_best:
-                pnew = rout_dist
-                pb_best = rout_dist
-                moveb = OK_move[i]
+        if len(tabu) > 10:
+            tabu.pop(9)
 
         count = count + 1 
     print(pb_best)
-    print(moveb)
+    print(tabu)
         
 if __name__ == "__main__":
     
