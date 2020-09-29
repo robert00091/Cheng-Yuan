@@ -1,5 +1,7 @@
-import numpy
+from __future__ import print_function
+import numpy as np
 import random
+
 
 '''            
             Incheon   Seoul   Busan  Daegu  Daejeon   Gwangju   Suwon-si   Ulsan   Jeonju   Cheongju-si   Changwon   Jeju-si   Chuncheon   Hongsung    Muan
@@ -22,13 +24,15 @@ Muan       |                                                                    
 
 '''
 
+def Sum(xb):
+    total = 0
+    for i in range(len(xb)):
+        total = total + xb[i]
+    return total
 
-def rand_walk(dis_table):
-    # The initial and final pos are both Incheon
+def walk(dis_table, goal_1):
     xb = []
-    goal_1 = random.randint(1,14)
     xb.append(dis_table[0][goal_1])
-    print(xb)
     pl = [goal_1] # The place have been travelled (i, j index)
 
     for _ in range(13):
@@ -36,24 +40,105 @@ def rand_walk(dis_table):
         while goal == goal_1 or (goal in pl):
             goal = random.randint(1,14)
         pl.append(goal)
-        #print(pl)
 
         xb.append(dis_table[goal_1][goal])
-        print(xb)
-
-
         goal_1 = goal
+    xb.append(dis_table[goal_1][0]) # Back to Incheon
+    #pl.append(0)
+    total_len = Sum(xb)
+    return pl, total_len
 
-    pl.append(0)
-    print(pl)
-        #count = count - 1
+def route_count(dis_table, pl):
+    xb = []
+    xb.append(dis_table[0][pl[0]])
+    for i in range(len(pl)-1):
+        xb.append(dis_table[pl[i]][pl[i+1]])
+    xb.append(dis_table[pl[len(pl)-1]][0])
+    #print(xb)
+    route_sum = Sum(xb)
+    return route_sum
+
+def find_neighbor(pl):
+    pl_new = []
+    move_1 = [pl[i]+1 for i in range(len(pl))]
+    move_2 = [pl[i]-1 for i in range(len(pl))] 
+
+    for i in move_1:
+        for j in move_2:
+            if i != j and i!=0 and i!=15 and j!=0 and j!=15 and (i not in pl_new) and (j not in pl_new):
+                pl_new.append(i)
+                pl_new.append(j)
+    return pl_new
+
+
+def rand_walk(dis_table):
+    # The initial and final pos are both Incheon
+    goal_1 = random.randint(1,14)
+    pl, total_len = walk(dis_table, goal_1)
+    #print('Total length:', total_len)
+    pb_best = total_len
+    pl_best = pl
+
+    count = 0
+    while count <= 100:
+
+        pl_new = find_neighbor(pl)
+
+        min_total = route_count(dis_table, pl_new)
+        if min_total < pb_best:
+            pb_best = min_total
+            pl_best = pl_new
+        
+        goal_1 = random.randint(1,14)
+        pl, total_len = walk(dis_table, goal_1)
+        count = count + 1
     
+    print(pl_best)
+    print('Minimum Total:', pb_best)
+
+    return pl_best, pb_best
 
 
+def tabu_search(dis_table, pl_best, pb_best):
+    pcur = pl_best
+    pcur_fix = []
+    for i in range(len(pcur)):
+        pcur_fix.append(pcur[i])
+    move = []
+    OK_move, moveb = [], []
+    route = []
+    tabu = [0]*10
 
+    count = 0
+    
+    while count <= 50:
+        pnew = 0
+        ptest = route_count(dis_table, pcur)
 
+        for i in range(13):
+            for j in range(13):
+                if i != j:
+                    move.append((i,j))
+        
+        for (i, j) in move:
+            pcur_move = np.copy(pcur)
+            tmp1, tmp2 = pcur[i], pcur[j]
+            pcur_move[j], pcur_move[i] = tmp1, tmp2
+            route.append(pcur_move)
+            OK_move.append((i,j))
+            
 
+        for i in range(10):
+            rout_dist = route_count(dis_table, route[i])
+            if rout_dist < pb_best:
+                pnew = rout_dist
+                pb_best = rout_dist
+                moveb = OK_move[i]
 
+        count = count + 1 
+    print(pb_best)
+    print(moveb)
+        
 if __name__ == "__main__":
     
 
@@ -92,10 +177,13 @@ if __name__ == "__main__":
         dis_table[12][i] = dis_table[i][12] = Chuncheon[i]
         dis_table[13][i] = dis_table[i][13] = Hongsung[i]
         dis_table[14][i] = dis_table[i][14] = Muan[i]
-
+    '''
     for i in range(15):
         for j in range(15):
-            print('{0:3d}'.format(dis_table[i][j]), end=' ')
+            print('{0:3d}'.format(dis_table[i][j]), end = ' ')
         print('\n')
+    '''
+    pl_best, pb_best = rand_walk(dis_table)
 
-    rand_walk(dis_table)
+    tabu_search(dis_table, pl_best, pb_best)
+
