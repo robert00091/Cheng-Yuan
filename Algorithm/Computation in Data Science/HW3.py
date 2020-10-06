@@ -72,9 +72,6 @@ def pop_input(knife, pistol, equipment, primary):
                 prima_3.append(prima[i])
 
     count = 0
-    prim3_idx = []
-    pop_idx = []
-    sumup = 0
     k = []
 
     for i in range(len(tmp_3)):
@@ -103,13 +100,30 @@ def two_combinations(matepool):
 
     return list(itertools.combinations(matepool, 2))
 
+
 def flatten(A):
     return [y for x in A for y in x]
 
-def roul_wheel(pop, ps, mps):
+
+def check_weight(A, weight):
+    bound = 529
+    pop = A.copy()
+    for i in range(len(A)):
+        wei = 0
+        for j in range(len(A[i])):
+            wei = wei + (A[i][j] * weight[j])
+        if wei > bound:
+            pop[i] = []
+
+    mate_pop = [i for i in pop if i != []]
+
+    return mate_pop
+
+
+def roul_wheel(pop, ps, mps, sur_pts):
     A = []
     matepool = []
-    sur_pts = [7, 8, 13, 29, 48, 99, 177, 213, 202, 210, 380, 485, 9, 12, 15]
+
     sur_sum = 0
     max = -99999999
     for i in range(ps):
@@ -137,8 +151,8 @@ def roul_wheel(pop, ps, mps):
 
 def two_pt_cross(gp1, gp2):
 
-    gp1_tmp = []
-    gp2_tmp = []
+    gp1_tmp_1 = []
+    gp2_tmp_2 = []
     mate_two_cross = []
 
     gp1_tmp_1 = gp1[0:5]
@@ -157,18 +171,33 @@ def two_pt_cross(gp1, gp2):
     return mate_two_cross
 
 
+def uniform_cross(gp1, gp2, p):
+    mate_uniform_cross = []
+    for i in range(len(gp1)):
+        prob = random.uniform(0, 1)
+        if prob >= p:
+            tmp = gp1[i]
+            gp1[i] = gp2[i]
+            gp2[i] = tmp
+
+    mate_uniform_cross.append(gp1)
+    mate_uniform_cross.append(gp2)
+
+    return mate_uniform_cross
+
+
 def multi_bit_mut_rand(gp, eta):
     g = gp
-    #print(g)
+    # print(g)
     while eta != 0:
         for i in range(len(gp)):
-            
+
             j = random.randint(0, 14)
             k = random.randint(0, 14)
-            if k == j: 
+            if k == j:
                 k = random.randint(0, 14)
             #print('--------------%d, %d------------------'%(j, k))
-            #print(g[i])
+            # print(g[i])
             if g[i][j] == 0:
                 g[i][j] = 1
             else:
@@ -179,11 +208,71 @@ def multi_bit_mut_rand(gp, eta):
             else:
                 g[i][k] = 0
 
-            #print(g[i])
-            
+            # print(g[i])
+
         eta = eta - 1
     return g
 
+
+def multi_bit_mut_consecutive(gp, eta):
+    g = gp
+    # print(g)
+    move = [4, 5, 6, 7, 8]
+    while eta > 0:
+        j = 0
+        for i in range(len(gp)):
+            while j <= 3:
+                if gp[i][move[j]] == 0:
+                    g[i][move[j]] = 1
+                    j = j + 1
+                if gp[i][move[j]] == 1:
+                    g[i][move[j]] = 0
+                    j = j + 1
+
+            eta = eta - 1
+
+    # print(g)
+    return g
+
+
+def survival_pt_cal(g, sur_pts, weight):
+    max_sur_pts = 0
+    max_g = []
+    pts = 0
+
+    for i in range(len(g)):
+        for j in range(len(g[i])):
+            pts = pts + (g[i][j] * sur_pts[j])
+        # print(g[i])
+        # print(pts)
+        # shadow daggers(i=0) and desert eagle magnum(i=5) at the same time, add an additional 5 survival points.
+        if g[i][0] == 1 and g[i][5] == 1:
+            pts = pts + 5
+
+            # 228 compact handgun(i=3) and either AK-47(i=9) or M4A1(i=8) at the same time, add an additional 15 survival points.
+        if g[i][3] == 1 and (g[i][9] == 1 or g[i][8] == 1):
+            pts = pts + 15
+
+            # either Leone YG1265 Auto Shotgun(i=7) or Krieg 500 Sniper(i=10), plus Desert Eagle Magnum(i=5) and tactical shield(i=14), add an additional 25 survival points.
+        if (g[i][7] == 1 or g[i][10] == 1) and g[i][5] == 1 and g[i][14] == 1:
+            pts = pts + 25
+
+            # all three equipments in your inventory, add an additional 70 survival points.
+        if g[i][12] == 1 and g[i][13] == 1 and g[i][14] == 1:
+            pts = pts + 70
+
+        if pts > max_sur_pts:
+            max_sur_pts = pts
+            # print(max_sur_pts)
+            max_g = g[i]
+
+        pts = 0
+    wei = 0
+    for i in range(len(max_g)):
+        wei = wei + (max_g[i] * weight[i])
+    print('Items in the inventory bag:', max_g)
+    print('Total Weight:', wei)
+    return max_sur_pts
 
 
 if __name__ == "__main__":
@@ -192,23 +281,46 @@ if __name__ == "__main__":
     pistol = [26.1, 37.6, 62.5]
     equipment = [24.2, 32.1, 42.5]
     primary = [100.2, 141.1, 119.2, 122.4, 247.6, 352.0]
+    weight = [3.3, 3.4, 6.0, 26.1, 37.6, 62.5, 100.2,
+              141.1, 119.2, 122.4, 247.6, 352.0, 24.2, 32.1, 42.5]
+    sur_pts = [7, 8, 13, 29, 48, 99, 177, 213, 202, 210, 380, 485, 9, 12, 15]
 
     pop = pop_input(knife, pistol, equipment, primary)
     # print(len(pop))
-    matepool = roul_wheel(pop, len(pop), 10)
-    #print(matepool)
+
+    # GA1
+    '''
+    matepool = roul_wheel(pop, len(pop), 100, sur_pts)
+    # print(matepool)
 
     combination_matepool = two_combinations(matepool)
-    #print(combination_matepool)
-
+    # print(combination_matepool)
     mate_two_cross = []
     for i in range(len(combination_matepool)):
-        mate_two_cross.append(two_pt_cross(combination_matepool[i][0], combination_matepool[i][1]))
+        mate_two_cross.append(two_pt_cross(
+            combination_matepool[i][0], combination_matepool[i][1]))
 
     mate_two_cross = flatten(mate_two_cross)
+    mate_two_cross = multi_bit_mut_rand(mate_two_cross, 100)
+    # print(mate_two_cross)
+    mate_pop = check_weight(mate_two_cross, weight)
+    print('--------- Genetic Algorithm 1 -------------')
+    max_sur_pts = survival_pt_cal(mate_pop, sur_pts, weight)
+    print('Max_survial points:', max_sur_pts)
+    '''
 
-
-    mate_two_cross = multi_bit_mut_rand(mate_two_cross, 1000)
-    
-    print(mate_two_cross)
-
+    # GA2
+    matepool2 = roul_wheel(pop, len(pop), 100, sur_pts)
+    combination_matepool2 = two_combinations(matepool2)
+    # print(combination_matepool2)
+    mate_uniform = []
+    for i in range(len(combination_matepool2)):
+        mate_uniform.append(uniform_cross(
+            combination_matepool2[i][0], combination_matepool2[i][1], 0.1))
+    mate_uniform = flatten(mate_uniform)
+    # print(mate_uniform)
+    mate_pop_uniform = multi_bit_mut_consecutive(mate_uniform, 101)
+    mate_pop_uniform = check_weight(mate_pop_uniform, weight)
+    print('--------- Genetic Algorithm 2 -------------')
+    max_sur_pts_uniform = survival_pt_cal(mate_pop_uniform, sur_pts, weight)
+    print('Max_survial points:', max_sur_pts_uniform)
