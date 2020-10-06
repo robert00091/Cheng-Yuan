@@ -107,7 +107,7 @@ def flatten(A):
 
 def check_weight(A, weight):
     bound = 529
-    pop = A.copy()
+    pop = A[:]
     for i in range(len(A)):
         wei = 0
         for j in range(len(A[i])):
@@ -216,23 +216,25 @@ def multi_bit_mut_rand(gp, eta):
 
 def multi_bit_mut_consecutive(gp, eta):
     g = gp
-    # print(g)
-    move = [4, 5, 6, 7, 8]
-    while eta > 0:
-        j = 0
-        for i in range(len(gp)):
-            while j <= 3:
-                if gp[i][move[j]] == 0:
-                    g[i][move[j]] = 1
-                    j = j + 1
-                if gp[i][move[j]] == 1:
-                    g[i][move[j]] = 0
-                    j = j + 1
+    tmp = []
+    move = [6, 7, 8]
 
+    for i in range(len(gp)):
+        tmp.append(gp[i])
+
+    while eta > 0:
+
+        for i in range(len(gp)):
+            for j in move:
+                if gp[i][j] == 0:
+                    tmp[i][j] = 1
+                    break
+                else:
+                    tmp[i][j] = 0
             eta = eta - 1
 
-    # print(g)
-    return g
+    #print(tmp)
+    return tmp
 
 
 def survival_pt_cal(g, sur_pts, weight):
@@ -288,9 +290,8 @@ if __name__ == "__main__":
     pop = pop_input(knife, pistol, equipment, primary)
     # print(len(pop))
 
-    # GA1
-    '''
-    matepool = roul_wheel(pop, len(pop), 100, sur_pts)
+    # GA1 with population size = 10 and maximum number of iteration = 20
+    matepool = roul_wheel(pop, len(pop), 10, sur_pts)
     # print(matepool)
 
     combination_matepool = two_combinations(matepool)
@@ -301,16 +302,17 @@ if __name__ == "__main__":
             combination_matepool[i][0], combination_matepool[i][1]))
 
     mate_two_cross = flatten(mate_two_cross)
-    mate_two_cross = multi_bit_mut_rand(mate_two_cross, 100)
+    mate_two_cross = multi_bit_mut_rand(mate_two_cross, 20)
     # print(mate_two_cross)
     mate_pop = check_weight(mate_two_cross, weight)
     print('--------- Genetic Algorithm 1 -------------')
     max_sur_pts = survival_pt_cal(mate_pop, sur_pts, weight)
     print('Max_survial points:', max_sur_pts)
-    '''
+    
+#------------------------------------------------------------------------------------#
 
-    # GA2
-    matepool2 = roul_wheel(pop, len(pop), 100, sur_pts)
+    # GA2 with population size = 10 and maximum number of iteration = 20
+    matepool2 = roul_wheel(pop, len(pop), 10, sur_pts)
     combination_matepool2 = two_combinations(matepool2)
     # print(combination_matepool2)
     mate_uniform = []
@@ -319,7 +321,7 @@ if __name__ == "__main__":
             combination_matepool2[i][0], combination_matepool2[i][1], 0.1))
     mate_uniform = flatten(mate_uniform)
     # print(mate_uniform)
-    mate_pop_uniform = multi_bit_mut_consecutive(mate_uniform, 101)
+    mate_pop_uniform = multi_bit_mut_consecutive(mate_uniform, 20)
     mate_pop_uniform = check_weight(mate_pop_uniform, weight)
     print('--------- Genetic Algorithm 2 -------------')
     max_sur_pts_uniform = survival_pt_cal(mate_pop_uniform, sur_pts, weight)
