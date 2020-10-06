@@ -99,6 +99,13 @@ def pop_input(knife, pistol, equipment, primary):
     return pop_input
 
 
+def two_combinations(matepool):
+
+    return list(itertools.combinations(matepool, 2))
+
+def flatten(A):
+    return [y for x in A for y in x]
+
 def roul_wheel(pop, ps, mps):
     A = []
     matepool = []
@@ -129,8 +136,53 @@ def roul_wheel(pop, ps, mps):
 
 
 def two_pt_cross(gp1, gp2):
-    cp = []
-    
+
+    gp1_tmp = []
+    gp2_tmp = []
+    mate_two_cross = []
+
+    gp1_tmp_1 = gp1[0:5]
+    gp1_tmp_2 = gp1[10:15]
+    gp2_tmp_1 = gp2[0:5]
+    gp2_tmp_2 = gp2[10:15]
+
+    gp1[0:5] = gp2_tmp_1
+    gp1[10:15] = gp2_tmp_2
+    mate_two_cross.append(gp1)
+
+    gp2[0:5] = gp1_tmp_1
+    gp2[10:15] = gp1_tmp_2
+    mate_two_cross.append(gp2)
+
+    return mate_two_cross
+
+
+def multi_bit_mut_rand(gp, eta):
+    g = gp
+    #print(g)
+    while eta != 0:
+        for i in range(len(gp)):
+            
+            j = random.randint(0, 14)
+            k = random.randint(0, 14)
+            if k == j: 
+                k = random.randint(0, 14)
+            #print('--------------%d, %d------------------'%(j, k))
+            #print(g[i])
+            if g[i][j] == 0:
+                g[i][j] = 1
+            else:
+                g[i][j] = 0
+
+            if g[i][k] == 0:
+                g[i][k] = 1
+            else:
+                g[i][k] = 0
+
+            #print(g[i])
+            
+        eta = eta - 1
+    return g
 
 
 
@@ -143,5 +195,20 @@ if __name__ == "__main__":
 
     pop = pop_input(knife, pistol, equipment, primary)
     # print(len(pop))
-    matepool = roul_wheel(pop, len(pop), 4000)
-    print(matepool)
+    matepool = roul_wheel(pop, len(pop), 10)
+    #print(matepool)
+
+    combination_matepool = two_combinations(matepool)
+    #print(combination_matepool)
+
+    mate_two_cross = []
+    for i in range(len(combination_matepool)):
+        mate_two_cross.append(two_pt_cross(combination_matepool[i][0], combination_matepool[i][1]))
+
+    mate_two_cross = flatten(mate_two_cross)
+
+
+    mate_two_cross = multi_bit_mut_rand(mate_two_cross, 1000)
+    
+    print(mate_two_cross)
+
